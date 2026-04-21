@@ -6,6 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
+from app.core.config import get_settings
+from app.core.rate_limit import limiter
 from app.core.security import hash_password, verify_password
 from app.db.session import get_db
 from app.models.employee import Employee
@@ -22,6 +24,7 @@ router = APIRouter(prefix="/v1/auth", tags=["auth"])
 
 
 @router.post("/login", response_model=TokenPair)
+@limiter.limit(lambda: get_settings().RATE_LIMIT_LOGIN)
 def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)) -> TokenPair:
     try:
         user = auth_service.authenticate(db, email=payload.email, password=payload.password)
@@ -61,6 +64,7 @@ def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)
 
 
 @router.post("/refresh", response_model=TokenPair)
+@limiter.limit(lambda: get_settings().RATE_LIMIT_REFRESH)
 def refresh(payload: RefreshRequest, request: Request, db: Session = Depends(get_db)) -> TokenPair:
     try:
         user, access_token, refresh_token, expires_at, _jti = auth_service.rotate_refresh(

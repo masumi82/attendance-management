@@ -3,6 +3,8 @@ from typing import AsyncIterator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app.api.v1 import (
     admin,
@@ -18,6 +20,7 @@ from app.api.v1 import (
 from app.api.v1 import requests as requests_api
 from app.core.config import get_settings
 from app.core.logging import setup_logging
+from app.core.rate_limit import limiter
 from app.jobs.scheduler import start_scheduler, stop_scheduler
 
 
@@ -43,13 +46,19 @@ def create_app() -> FastAPI:
         redoc_url=None,
     )
 
+    # Rate limiting (slowapi). Exception handler emits 429 with Retry-After.
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+    # CORS: Bearer-based API, so credentials are not needed on the cookie
+    # path. Restrict methods and headers to what the frontend actually uses.
     if settings.cors_origins_list:
         app.add_middleware(
             CORSMiddleware,
             allow_origins=settings.cors_origins_list,
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
+            allow_credentials=False,
+            allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+            allow_headers=["Authorization", "Content-Type"],
         )
 
     app.include_router(health.router, prefix="/api")

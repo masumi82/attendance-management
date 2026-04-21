@@ -8,6 +8,7 @@ from fastapi import Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.security import (
     decode_token,
     generate_refresh_token,
@@ -27,7 +28,9 @@ class AuthError(Exception):
 
 
 def _hash_refresh(raw: str) -> str:
-    return hashlib.sha256(raw.encode()).hexdigest()
+    pepper = get_settings().REFRESH_TOKEN_PEPPER
+    payload = f"{pepper}:{raw}" if pepper else raw
+    return hashlib.sha256(payload.encode()).hexdigest()
 
 
 def authenticate(db: Session, *, email: str, password: str) -> Employee:

@@ -12,7 +12,17 @@ from jose import JWTError, jwt
 
 from app.core.config import get_settings
 
-_ph = PasswordHasher()
+
+def _build_hasher() -> PasswordHasher:
+    s = get_settings()
+    return PasswordHasher(
+        time_cost=s.ARGON2_TIME_COST,
+        memory_cost=s.ARGON2_MEMORY_COST_KB,
+        parallelism=s.ARGON2_PARALLELISM,
+    )
+
+
+_ph = _build_hasher()
 
 TokenType = Literal["access", "refresh"]
 
