@@ -29,14 +29,8 @@ const DECISION_ERROR_LABEL: Record<string, string> = {
 
 function translateDetail(detail: string): string | null {
   if (DECISION_ERROR_LABEL[detail]) return DECISION_ERROR_LABEL[detail];
-  // leave_insufficient_balance: remaining=0.0, requested=1
-  const m = detail.match(
-    /^leave_insufficient_balance:\s*remaining=([\d.]+),\s*requested=([\d.]+)/,
-  );
-  if (m) {
-    const remaining = Number(m[1]).toFixed(1);
-    const requested = Number(m[2]).toFixed(1);
-    return `有給残日数が足りません（残 ${remaining} 日 / 要求 ${requested} 日）。管理者が「休暇残高」→「全社員に付与」または個別付与を実行してください。`;
+  if (detail === "leave_insufficient_balance") {
+    return "有給残日数が足りません。管理者に「休暇残高」→「個別付与」を依頼してください。";
   }
   if (detail.startsWith("leave_")) {
     return `休暇申請を処理できませんでした（${detail.replace("leave_", "")}）`;

@@ -156,9 +156,10 @@ def deduct_leave(
         balance.granted_days + balance.carried_over_days - balance.used_days
     )
     if remaining < days:
-        raise LeaveError(
-            f"insufficient_balance: remaining={remaining}, requested={days}"
-        )
+        # Keep the error code terse — do not leak remaining/requested to the
+        # client. The detailed values are still captured in audit_logs via
+        # the caller's record_audit invocation.
+        raise LeaveError("insufficient_balance")
     balance.used_days = balance.used_days + days
     db.flush()
     return balance

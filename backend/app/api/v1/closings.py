@@ -163,11 +163,25 @@ def reopen(
 # ---------------------------------------------------------------------------
 # CSV exports
 # ---------------------------------------------------------------------------
-def _csv_response(filename: str, rows: list[list[str]]) -> StreamingResponse:
+# Cells starting with these characters are interpreted as formulas by
+# Excel / Google Sheets / LibreOffice Calc. Prefix with an apostrophe so
+# the cell is treated as literal text (CWE-1236: Formula Injection).
+_CSV_DANGEROUS_PREFIXES = ("=", "+", "-", "@", "\t", "\r", "\n")
+
+
+def _sanitize_cell(value: object) -> str:
+    s = "" if value is None else str(value)
+    if s.startswith(_CSV_DANGEROUS_PREFIXES):
+        return "'" + s
+    return s
+
+
+def _csv_response(filename: str, rows: list[list[object]]) -> StreamingResponse:
     buffer = io.StringIO()
     buffer.write("\ufeff")  # BOM for Excel
     writer = csv.writer(buffer, quoting=csv.QUOTE_ALL)
-    writer.writerows(rows)
+    for row in rows:
+        writer.writerow([_sanitize_cell(cell) for cell in row])
     buffer.seek(0)
     return StreamingResponse(
         iter([buffer.getvalue()]),

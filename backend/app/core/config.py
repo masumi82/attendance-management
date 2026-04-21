@@ -23,6 +23,20 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRES_MINUTES: int = 15
     JWT_REFRESH_TOKEN_EXPIRES_DAYS: int = 14
+    # Optional pepper for refresh-token hashing. When set, adds an
+    # application-wide secret to the SHA-256 input so a leaked DB alone
+    # cannot be used to recognize a stolen token.
+    REFRESH_TOKEN_PEPPER: str = ""
+
+    # Argon2id parameters (defaults tuned for Raspberry Pi 4).
+    # See https://argon2-cffi.readthedocs.io/en/stable/parameters.html
+    ARGON2_TIME_COST: int = 3
+    ARGON2_MEMORY_COST_KB: int = 65536  # 64 MiB
+    ARGON2_PARALLELISM: int = 2
+
+    # Rate limits (per client IP).
+    RATE_LIMIT_LOGIN: str = "10/minute"
+    RATE_LIMIT_REFRESH: str = "30/minute"
 
     CORS_ORIGINS: str = ""
 
