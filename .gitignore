@@ -1,0 +1,57 @@
+# Secrets & env
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+.npm/
+*.tsbuildinfo
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+logs/
+
+# Docker / data
+postgres-data/
+backup/
+cloudflared/credentials.json
+cloudflared/cert.pem
+
+# Keys
+*.pem
+*.key
+
+# Local tooling / personal config (not part of the app)
+.claude/
+.agents/
+skills-lock.json
+
+# Test artifacts that may reference deployment-specific URLs or emails
+E2E_REPORT.md
+e2e_screenshots/
+e2e_screenshots_deep/
+e2e_screenshots_*/
